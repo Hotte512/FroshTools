@@ -2,6 +2,7 @@
 
 namespace Frosh\Tools\Subscriber;
 
+use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
@@ -11,6 +12,7 @@ class AdminInfoListener
     public function __construct(
         #[Autowire('%frosh_tools.elasticsearch.enabled%')]
         private bool $elasticsearchEnabled,
+        private readonly SystemConfigService $systemConfigService,
         #[Autowire(param: 'shopware.http_cache.reverse_proxy.fastly.service_id')]
         private readonly ?string $fastlyServiceId = null,
     ) {
@@ -30,6 +32,7 @@ class AdminInfoListener
         $data['settings']['froshTools'] = [
             'elasticsearchEnabled' => $this->elasticsearchEnabled,
             'fastlyEnabled' => !empty($this->fastlyServiceId),
+            'quickActionsFlyoutEnabled' => (bool) $this->systemConfigService->get('FroshTools.config.enableQuickActionsFlyout'),
         ];
 
         $event->getResponse()->setContent(json_encode($data, \JSON_THROW_ON_ERROR));

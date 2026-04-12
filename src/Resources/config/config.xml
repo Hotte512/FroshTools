@@ -33,4 +33,18 @@
         </input-field>
     </card>
 
+    <card>
+        <title>Quick Actions</title>
+        <title lang="de-DE">Schnellaktionen</title>
+
+        <input-field type="bool">
+            <name>enableQuickActionsFlyout</name>
+            <label>Enable quick actions flyout in admin menu</label>
+            <label lang="de-DE">Schnellaktionen-Flyout im Admin-Menü aktivieren</label>
+            <helpText>Shows a flyout with cache actions when hovering over the FroshTools menu entry in the settings sidebar.</helpText>
+            <helpText lang="de-DE">Zeigt ein Flyout mit Cache-Aktionen beim Hovern über den FroshTools-Menüeintrag in der Einstellungen-Sidebar.</helpText>
+            <defaultValue>false</defaultValue>
+        </input-field>
+    </card>
+
 </config>

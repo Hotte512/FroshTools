@@ -38,6 +38,65 @@ class FroshTools extends ApiService {
             });
     }
 
+    clearAllPools() {
+        const apiRoute = `${this.getApiBasePath()}/cache_clear_pools`;
+        return this.httpClient
+            .delete(apiRoute, {
+                headers: this.getBasicHeaders(),
+            })
+            .then((response) => {
+                return ApiService.handleResponse(response);
+            });
+    }
+
+    clearAppCache() {
+        const apiRoute = `${this.getApiBasePath()}/cache_clear_app`;
+        return this.httpClient
+            .delete(apiRoute, {
+                headers: this.getBasicHeaders(),
+            })
+            .then((response) => {
+                return ApiService.handleResponse(response);
+            });
+    }
+
+    clearHttpCache() {
+        const apiRoute = `${this.getApiBasePath()}/cache_clear_http`;
+        return this.httpClient
+            .delete(apiRoute, {
+                headers: this.getBasicHeaders(),
+            })
+            .then((response) => {
+                return ApiService.handleResponse(response);
+            });
+    }
+
+    clearAllCaches() {
+        const apiRoute = `${this.getApiBasePath()}/cache_clear_all`;
+        return this.httpClient
+            .delete(apiRoute, {
+                headers: this.getBasicHeaders(),
+            })
+            .then((response) => {
+                return ApiService.handleResponse(response);
+            });
+    }
+
+    compileThemeBackend() {
+        const apiRoute = `${this.getApiBasePath()}/cache_compile_theme`;
+        return this.httpClient
+            .post(
+                apiRoute,
+                {},
+                {
+                    headers: this.getBasicHeaders(),
+                }
+            )
+            .then((response) => {
+                return ApiService.handleResponse(response);
+            });
+    }
+
     getQueue() {
         const apiRoute = `${this.getApiBasePath()}/queue/list`;
         return this.httpClient

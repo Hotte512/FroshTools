@@ -85,19 +85,86 @@
         :large="true"
         positionIdentifier="frosh-tools-tab-cache-action"
     >
-        <sw-button
-            variant="primary"
-            deprecated
-            @click="compileTheme"
-        >
-            {{ $t('frosh-tools.compileTheme') }}
-        </sw-button>
-        <sw-button
-            variant="primary"
-            deprecated
-            @click="clearOPcache"
-        >
-            {{ $t('frosh-tools.clearOpCache') }}
-        </sw-button>
+        <div class="frosh-tools-tab-cache__action-grid">
+            <div class="frosh-tools-tab-cache__action-item">
+                <sw-button
+                    variant="primary"
+                    deprecated
+                    @click="clearAppCache"
+                >
+                    {{ $t('frosh-tools.clearAppCache') }}
+                </sw-button>
+                <p class="frosh-tools-tab-cache__action-description">
+                    {{ $t('frosh-tools.clearAppCacheDescription') }}
+                </p>
+            </div>
+
+            <div class="frosh-tools-tab-cache__action-item">
+                <sw-button
+                    variant="primary"
+                    deprecated
+                    @click="clearAllPools"
+                >
+                    {{ $t('frosh-tools.clearAllPools') }}
+                </sw-button>
+                <p class="frosh-tools-tab-cache__action-description">
+                    {{ $t('frosh-tools.clearAllPoolsDescription') }}
+                </p>
+            </div>
+
+            <div class="frosh-tools-tab-cache__action-item">
+                <sw-button
+                    variant="primary"
+                    deprecated
+                    @click="clearHttpCache"
+                >
+                    {{ $t('frosh-tools.clearHttpCache') }}
+                </sw-button>
+                <p class="frosh-tools-tab-cache__action-description">
+                    {{ $t('frosh-tools.clearHttpCacheDescription') }}
+                </p>
+            </div>
+
+            <div class="frosh-tools-tab-cache__action-item">
+                <sw-button
+                    variant="primary"
+                    deprecated
+                    @click="clearOPcache"
+                >
+                    {{ $t('frosh-tools.clearOpCache') }}
+                </sw-button>
+                <p class="frosh-tools-tab-cache__action-description">
+                    {{ $t('frosh-tools.clearOpCacheDescription') }}
+                </p>
+            </div>
+
+            <div class="frosh-tools-tab-cache__action-item">
+                <sw-button
+                    variant="primary"
+                    deprecated
+                    @click="compileTheme"
+                >
+                    {{ $t('frosh-tools.compileTheme') }}
+                </sw-button>
+                <p class="frosh-tools-tab-cache__action-description">
+                    {{ $t('frosh-tools.compileThemeDescription') }}
+                </p>
+            </div>
+        </div>
+
+        <div class="frosh-tools-tab-cache__action-divider"></div>
+
+        <div class="frosh-tools-tab-cache__action-item frosh-tools-tab-cache__action-item--danger">
+            <sw-button
+                variant="danger"
+                deprecated
+                @click="clearAllCaches"
+            >
+                {{ $t('frosh-tools.clearAllCaches') }}
+            </sw-button>
+            <p class="frosh-tools-tab-cache__action-description">
+                {{ $t('frosh-tools.clearAllCachesDescription') }}
+            </p>
+        </div>
     </sw-card>
 </sw-card-view>

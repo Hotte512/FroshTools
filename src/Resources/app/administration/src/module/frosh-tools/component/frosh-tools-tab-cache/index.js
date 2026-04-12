@@ -114,10 +114,109 @@ Component.register('frosh-tools-tab-cache', {
 
         async clearOPcache() {
             this.isLoading = true;
-            await this.froshToolsService.clearOPcache();
-            this.createNotificationSuccess({
-                message: this.$t('frosh-tools.clearedOpcache'),
-            });
+            try {
+                await this.froshToolsService.clearOPcache();
+                this.createNotificationSuccess({
+                    message: this.$t('frosh-tools.clearedOpcache'),
+                });
+            } catch (error) {
+                this.createNotificationError({
+                    message: this.$t('frosh-tools.cacheActionFailed', { message: error.message || 'Unknown error' }),
+                });
+            }
+            await this.createdComponent();
+        },
+
+        async clearAllPools() {
+            this.isLoading = true;
+            try {
+                const result = await this.froshToolsService.clearAllPools();
+                if (result.success) {
+                    this.createNotificationSuccess({
+                        message: this.$t('frosh-tools.clearedAllPools'),
+                    });
+                } else {
+                    this.createNotificationWarning({
+                        message: this.$t('frosh-tools.cacheActionFailed', { message: result.message }),
+                    });
+                }
+            } catch (error) {
+                this.createNotificationError({
+                    message: this.$t('frosh-tools.cacheActionFailed', { message: error.message || 'Unknown error' }),
+                });
+            }
+            await this.createdComponent();
+        },
+
+        async clearAppCache() {
+            this.isLoading = true;
+            try {
+                const result = await this.froshToolsService.clearAppCache();
+                if (result.success) {
+                    this.createNotificationSuccess({
+                        message: this.$t('frosh-tools.clearedAppCache'),
+                    });
+                } else {
+                    this.createNotificationWarning({
+                        message: this.$t('frosh-tools.cacheActionFailed', { message: result.message }),
+                    });
+                }
+            } catch (error) {
+                this.createNotificationError({
+                    message: this.$t('frosh-tools.cacheActionFailed', { message: error.message || 'Unknown error' }),
+                });
+            }
+            await this.createdComponent();
+        },
+
+        async clearHttpCache() {
+            this.isLoading = true;
+            try {
+                const result = await this.froshToolsService.clearHttpCache();
+                if (result.success) {
+                    this.createNotificationSuccess({
+                        message: this.$t('frosh-tools.clearedHttpCache'),
+                    });
+                } else {
+                    this.createNotificationWarning({
+                        message: this.$t('frosh-tools.cacheActionFailed', { message: result.message }),
+                    });
+                }
+            } catch (error) {
+                this.createNotificationError({
+                    message: this.$t('frosh-tools.cacheActionFailed', { message: error.message || 'Unknown error' }),
+                });
+            }
+            await this.createdComponent();
+        },
+
+        async clearAllCaches() {
+            this.isLoading = true;
+            try {
+                const result = await this.froshToolsService.clearAllCaches();
+                if (result.results) {
+                    for (const step of result.results) {
+                        if (step.success) {
+                            this.createNotificationSuccess({
+                                message: step.message,
+                            });
+                        } else {
+                            this.createNotificationWarning({
+                                message: `${step.step}: ${step.message}`,
+                            });
+                        }
+                    }
+                }
+                if (result.success) {
+                    this.createNotificationSuccess({
+                        message: this.$t('frosh-tools.clearedAllCaches'),
+                    });
+                }
+            } catch (error) {
+                this.createNotificationError({
+                    message: this.$t('frosh-tools.cacheActionFailed', { message: error.message || 'Unknown error' }),
+                });
+            }
             await this.createdComponent();
         },
     },

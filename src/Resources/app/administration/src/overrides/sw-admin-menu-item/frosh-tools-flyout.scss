@@ -1,0 +1,57 @@
+.frosh-tools-flyout-anchor {
+    position: relative;
+}
+
+.frosh-tools-quick-flyout {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    z-index: 1100;
+    min-width: 220px;
+    background: var(--color-module-yellow-50, #fff);
+    border: 1px solid var(--color-border, #d1d9e0);
+    border-radius: 4px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.frosh-tools-quick-flyout__title {
+    padding: 8px 16px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--color-text-primary, #1a1a1a);
+    border-bottom: 1px solid var(--color-border, #d1d9e0);
+    margin-bottom: 4px;
+}
+
+.frosh-tools-quick-flyout__btn {
+    display: block;
+    width: 100%;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    font-size: 13px;
+    color: var(--color-text-primary, #52667a);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background-color: var(--color-interaction-secondary-hover, #e8f4fd);
+    }
+
+    &--danger {
+        color: var(--color-badge-danger-text, #de294c);
+        font-weight: 600;
+        border-bottom: 1px solid var(--color-border, #d1d9e0);
+        margin-bottom: 4px;
+        padding-bottom: 10px;
+
+        &:hover {
+            background-color: var(--color-badge-danger-bg, #fbe5ea);
+        }
+    }
+}

@@ -131,7 +131,16 @@
                 "rows": "Rows",
                 "dataSize": "Data Size",
                 "indexSize": "Index Size",
-                "totalSize": "Total Size"
+                "totalSize": "Total Size",
+                "storage": "Storage",
+                "diskFree": "Disk Free",
+                "diskTotal": "Disk Total",
+                "diskUsedPercent": "Disk Used",
+                "storageUsed": "Storage Used",
+                "directories": "Directories",
+                "directoryName": "Directory",
+                "directoryPath": "Path",
+                "directorySize": "Size"
             },
             "fastly": {
                 "title": "Fastly",

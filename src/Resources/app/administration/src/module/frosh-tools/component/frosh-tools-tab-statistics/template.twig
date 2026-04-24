@@ -365,6 +365,68 @@
         </sw-container>
     </sw-card>
 
+    <!-- Storage -->
+    <sw-card
+        v-if="storageStats"
+        deprecated
+        :title="$t('frosh-tools.tabs.statistics.storage')"
+        :isLoading="isLoadingStorage"
+        :large="true"
+        positionIdentifier="frosh-tools-statistics-storage"
+    >
+        <sw-container
+            columns="1fr 1fr 1fr 1fr"
+            gap="20px"
+            class="frosh-tools-tab-statistics__metrics"
+        >
+            <div class="frosh-tools-stat">
+                <div class="frosh-tools-stat__label">
+                    {{ $t('frosh-tools.tabs.statistics.diskUsedPercent') }}
+                </div>
+                <div :class="['frosh-tools-stat__value', 'frosh-tools-stat__value--' + diskUsedVariant(diskUsedPercent)]">
+                    {{ formatPercent(diskUsedPercent) }}
+                </div>
+            </div>
+            <div class="frosh-tools-stat">
+                <div class="frosh-tools-stat__label">
+                    {{ $t('frosh-tools.tabs.statistics.diskFree') }} / {{ $t('frosh-tools.tabs.statistics.diskTotal') }}
+                </div>
+                <div class="frosh-tools-stat__value">
+                    {{ formatSize(storageStats.disk.free) }} / {{ formatSize(storageStats.disk.total) }}
+                </div>
+            </div>
+            <div class="frosh-tools-stat">
+                <div class="frosh-tools-stat__label">
+                    {{ $t('frosh-tools.tabs.statistics.storageUsed') }}
+                </div>
+                <div class="frosh-tools-stat__value">
+                    {{ formatSize(storageStats.totalSize) }}
+                </div>
+            </div>
+            <div class="frosh-tools-stat">
+                <div class="frosh-tools-stat__label">
+                    {{ $t('frosh-tools.tabs.statistics.directories') }}
+                </div>
+                <div class="frosh-tools-stat__value">
+                    {{ storageStats.directories.length }}
+                </div>
+            </div>
+        </sw-container>
+
+        <template #grid>
+            <sw-data-grid
+                :showSelection="false"
+                :showActions="false"
+                :dataSource="storageStats.directories"
+                :columns="storageColumns"
+            >
+                <template #column-size="{ item }">
+                    {{ formatSize(item.size) }}
+                </template>
+            </sw-data-grid>
+        </template>
+    </sw-card>
+
     <!-- Table Sizes -->
     <sw-card
         v-if="dbStats && dbStats.tables"

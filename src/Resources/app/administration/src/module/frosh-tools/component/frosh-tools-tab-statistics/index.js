@@ -12,8 +12,10 @@ Component.register('frosh-tools-tab-statistics', {
         return {
             cacheStats: null,
             dbStats: null,
+            storageStats: null,
             isLoadingCache: true,
             isLoadingDb: true,
+            isLoadingStorage: true,
             numberFormatter: null,
             percentFormatter: null,
         };
@@ -38,7 +40,39 @@ Component.register('frosh-tools-tab-statistics', {
 
     computed: {
         isLoading() {
-            return this.isLoadingCache || this.isLoadingDb;
+            return this.isLoadingCache || this.isLoadingDb || this.isLoadingStorage;
+        },
+
+        diskUsedPercent() {
+            if (!this.storageStats || !this.storageStats.disk || this.storageStats.disk.total === 0) {
+                return 0;
+            }
+            const used = this.storageStats.disk.total - this.storageStats.disk.free;
+            return (used / this.storageStats.disk.total) * 100;
+        },
+
+        storageColumns() {
+            return [
+                {
+                    property: 'name',
+                    label: this.$t('frosh-tools.tabs.statistics.directoryName'),
+                    rawData: true,
+                    allowResize: true,
+                },
+                {
+                    property: 'path',
+                    label: this.$t('frosh-tools.tabs.statistics.directoryPath'),
+                    rawData: true,
+                    allowResize: true,
+                },
+                {
+                    property: 'size',
+                    label: this.$t('frosh-tools.tabs.statistics.directorySize'),
+                    rawData: true,
+                    align: 'right',
+                    allowResize: true,
+                },
+            ];
         },
 
         tableColumns() {
@@ -91,6 +125,7 @@ Component.register('frosh-tools-tab-statistics', {
         loadData() {
             this.loadCacheStats();
             this.loadDbStats();
+            this.loadStorageStats();
         },
 
         async loadCacheStats() {
@@ -111,6 +146,22 @@ Component.register('frosh-tools-tab-statistics', {
                 this.dbStats = null;
             }
             this.isLoadingDb = false;
+        },
+
+        async loadStorageStats() {
+            this.isLoadingStorage = true;
+            try {
+                this.storageStats = await this.froshToolsService.getStorageStatistics();
+            } catch {
+                this.storageStats = null;
+            }
+            this.isLoadingStorage = false;
+        },
+
+        diskUsedVariant(percent) {
+            if (percent >= 90) return 'danger';
+            if (percent >= 75) return 'warning';
+            return 'success';
         },
 
         formatSize(bytes) {

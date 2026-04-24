@@ -21,6 +21,16 @@
     }
 }
 
+.frosh-tools-tab-separator {
+    display: inline-block;
+    width: 1px;
+    height: 20px;
+    background-color: #d1d9e0;
+    margin: 0 4px;
+    align-self: center;
+    flex-shrink: 0;
+}
+
 .sw-version__status.has-permission {
     cursor: pointer;
 }

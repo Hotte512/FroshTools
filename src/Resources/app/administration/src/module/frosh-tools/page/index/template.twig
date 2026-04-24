@@ -4,12 +4,36 @@
             :small="false"
             positionIdentifier="frosh-tools-tabs"
         >
+            <!-- Overview -->
             <sw-tabs-item :route="{ name: 'frosh.tools.index.index' }">
                 {{ $t('frosh-tools.tabs.index.title') }}
             </sw-tabs-item>
+
+            <span class="frosh-tools-tab-separator"></span>
+
+            <!-- Performance & Caching -->
             <sw-tabs-item :route="{ name: 'frosh.tools.index.cache' }">
                 {{ $t('frosh-tools.tabs.cache.title') }}
             </sw-tabs-item>
+            <sw-tabs-item :route="{ name: 'frosh.tools.index.statistics' }">
+                {{ $t('frosh-tools.tabs.statistics.title') }}
+            </sw-tabs-item>
+            <sw-tabs-item
+                :route="{ name: 'frosh.tools.index.elasticsearch' }"
+                v-if="elasticsearchAvailable"
+            >
+                {{ $t('frosh-tools.tabs.elasticsearch.title') }}
+            </sw-tabs-item>
+            <sw-tabs-item
+                :route="{ name: 'frosh.tools.index.fastly' }"
+                v-if="fastlyAvailable"
+            >
+                {{ $t('frosh-tools.tabs.fastly.title') }}
+            </sw-tabs-item>
+
+            <span class="frosh-tools-tab-separator"></span>
+
+            <!-- Operations -->
             <sw-tabs-item :route="{ name: 'frosh.tools.index.scheduled' }">
                 {{ $t('frosh-tools.tabs.scheduledTaskOverview.title') }}
             </sw-tabs-item>
@@ -19,29 +43,18 @@
             <sw-tabs-item :route="{ name: 'frosh.tools.index.logs' }">
                 {{ $t('frosh-tools.tabs.logs.title') }}
             </sw-tabs-item>
-            <sw-tabs-item
-                :route="{ name: 'frosh.tools.index.elasticsearch' }"
-                v-if="elasticsearchAvailable"
-            >
-                {{ $t('frosh-tools.tabs.elasticsearch.title') }}
-            </sw-tabs-item>
-            <sw-tabs-item :route="{ name: 'frosh.tools.index.featureflags' }">
-                {{ $t('frosh-tools.tabs.feature-flags.title') }}
-            </sw-tabs-item>
+
+            <span class="frosh-tools-tab-separator"></span>
+
+            <!-- System Integrity -->
             <sw-tabs-item :route="{ name: 'frosh.tools.index.files' }">
                 {{ $t('frosh-tools.tabs.files.title') }}
             </sw-tabs-item>
             <sw-tabs-item :route="{ name: 'frosh.tools.index.statemachines' }">
                 {{ $t('frosh-tools.tabs.state-machines.title') }}
             </sw-tabs-item>
-            <sw-tabs-item
-                :route="{ name: 'frosh.tools.index.fastly' }"
-                v-if="fastlyAvailable"
-            >
-                {{ $t('frosh-tools.tabs.fastly.title') }}
-            </sw-tabs-item>
-            <sw-tabs-item :route="{ name: 'frosh.tools.index.statistics' }">
-                {{ $t('frosh-tools.tabs.statistics.title') }}
+            <sw-tabs-item :route="{ name: 'frosh.tools.index.featureflags' }">
+                {{ $t('frosh-tools.tabs.feature-flags.title') }}
             </sw-tabs-item>
         </sw-tabs>
         <router-view></router-view>

@@ -140,7 +140,10 @@
                 "directories": "Directories",
                 "directoryName": "Directory",
                 "directoryPath": "Path",
-                "directorySize": "Size"
+                "directorySize": "Size",
+                "cachedAt": "Calculated",
+                "refreshStorage": "Recalculate",
+                "sizeTimeout": "Timeout"
             },
             "fastly": {
                 "title": "Fastly",

@@ -374,6 +374,28 @@
         :large="true"
         positionIdentifier="frosh-tools-statistics-storage"
     >
+        <template #toolbar>
+            <span
+                v-if="storageStats.cachedAt"
+                class="frosh-tools-tab-statistics__cached-at"
+            >
+                {{ $t('frosh-tools.tabs.statistics.cachedAt') }}: {{ formatCachedAt(storageStats.cachedAt) }}
+            </span>
+            <sw-button
+                variant="ghost"
+                deprecated
+                :disabled="isLoadingStorage"
+                @click="refreshStorageStats"
+            >
+                <sw-icon
+                    deprecated
+                    :small="true"
+                    name="regular-undo"
+                ></sw-icon>
+                {{ $t('frosh-tools.tabs.statistics.refreshStorage') }}
+            </sw-button>
+        </template>
+
         <sw-container
             columns="1fr 1fr 1fr 1fr"
             gap="20px"
@@ -421,7 +443,16 @@
                 :columns="storageColumns"
             >
                 <template #column-size="{ item }">
-                    {{ formatSize(item.size) }}
+                    <template v-if="item.size >= 0">
+                        {{ formatSize(item.size) }}
+                    </template>
+                    <sw-label
+                        v-else
+                        variant="warning"
+                        :small="true"
+                    >
+                        {{ $t('frosh-tools.tabs.statistics.sizeTimeout') }}
+                    </sw-label>
                 </template>
             </sw-data-grid>
         </template>

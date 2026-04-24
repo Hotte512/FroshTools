@@ -140,7 +140,10 @@
                 "directories": "Verzeichnisse",
                 "directoryName": "Verzeichnis",
                 "directoryPath": "Pfad",
-                "directorySize": "Größe"
+                "directorySize": "Größe",
+                "cachedAt": "Berechnet",
+                "refreshStorage": "Neu berechnen",
+                "sizeTimeout": "Zeitüberschreitung"
             },
             "fastly": {
                 "title": "Fastly",

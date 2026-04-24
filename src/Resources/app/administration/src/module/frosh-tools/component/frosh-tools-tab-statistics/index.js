@@ -148,14 +148,28 @@ Component.register('frosh-tools-tab-statistics', {
             this.isLoadingDb = false;
         },
 
-        async loadStorageStats() {
+        async loadStorageStats(refresh = false) {
             this.isLoadingStorage = true;
             try {
-                this.storageStats = await this.froshToolsService.getStorageStatistics();
+                this.storageStats = await this.froshToolsService.getStorageStatistics(refresh);
             } catch {
                 this.storageStats = null;
             }
             this.isLoadingStorage = false;
+        },
+
+        refreshStorageStats() {
+            this.loadStorageStats(true);
+        },
+
+        formatCachedAt(isoString) {
+            if (!isoString) {
+                return '';
+            }
+            const date = new Date(isoString);
+            return date.toLocaleString(
+                Shopware.Application.getContainer('factory').locale.getLastKnownLocale(),
+            );
         },
 
         diskUsedVariant(percent) {
@@ -165,6 +179,10 @@ Component.register('frosh-tools-tab-statistics', {
         },
 
         formatSize(bytes) {
+            if (bytes < 0) {
+                return '–';
+            }
+
             if (bytes >= 1024 * 1024 * 1024) {
                 return this.percentFormatter.format(bytes / (1024 * 1024 * 1024)) + ' GiB';
             }

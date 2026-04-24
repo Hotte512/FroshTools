@@ -9,6 +9,7 @@ use Frosh\Tools\Components\DatabaseStatisticsService;
 use Frosh\Tools\Components\StorageStatisticsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route(path: '/api/_action/frosh-tools/statistics', defaults: ['_routeScope' => ['api'], '_acl' => ['frosh_tools:read']])]
@@ -42,8 +43,10 @@ class StatisticsController extends AbstractController
     }
 
     #[Route(path: '/storage', name: 'api.frosh.tools.statistics.storage', methods: ['GET'])]
-    public function storageStatistics(): JsonResponse
+    public function storageStatistics(Request $request): JsonResponse
     {
-        return new JsonResponse($this->storageStatisticsService->getStorageStatistics());
+        $fresh = $request->query->getBoolean('refresh');
+
+        return new JsonResponse($this->storageStatisticsService->getStorageStatistics($fresh));
     }
 }

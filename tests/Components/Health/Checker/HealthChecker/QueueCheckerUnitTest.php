@@ -10,6 +10,7 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Frosh\Tools\Components\Health\Checker\HealthChecker\QueueChecker;
 use Frosh\Tools\Components\Health\HealthCollection;
 use Frosh\Tools\Components\Health\SettingsResult;
+use Frosh\Tools\Components\Queue\QueueRegistry;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -227,6 +228,87 @@ class QueueCheckerUnitTest extends TestCase
         static::assertSame('max 10 mins', $result->recommended);
     }
 
+    public function testRedisTransportWithOldMessageResultsInWarningState(): void
+    {
+        // A shop running purely on Redis never writes to messenger_messages, so the
+        // Doctrine query alone would always report "0 mins" no matter how backed up the
+        // Redis queue actually is.
+        $queueRegistry = $this->createMock(QueueRegistry::class);
+        $queueRegistry->method('all')->willReturn([
+            'async' => $this->fakeQueueAdapter(ageSeconds: 2 * 60 * 60),
+        ]);
+
+        $result = $this->collectWith(
+            connection: $this->connectionReturning($this->createQueryBuilderMock([])),
+            config: ['FroshTools.config.monitorQueueGraceTime' => 15],
+            queueRegistry: $queueRegistry,
+        );
+
+        static::assertSame(SettingsResult::WARNING, $result->state);
+        static::assertStringContainsString('async', $result->current);
+    }
+
+    public function testRedisTransportWithRecentMessageResultsInOkState(): void
+    {
+        $queueRegistry = $this->createMock(QueueRegistry::class);
+        $queueRegistry->method('all')->willReturn([
+            'async' => $this->fakeQueueAdapter(ageSeconds: 60),
+        ]);
+
+        $result = $this->collectWith(
+            connection: $this->connectionReturning($this->createQueryBuilderMock([])),
+            config: ['FroshTools.config.monitorQueueGraceTime' => 15],
+            queueRegistry: $queueRegistry,
+        );
+
+        static::assertSame(SettingsResult::GREEN, $result->state);
+    }
+
+    public function testAmqpCountOnlyTransportFallsBackToPendingCount(): void
+    {
+        // AMQP cannot report an age at all, only a count, so it can never win the
+        // age-based comparison — it only surfaces when nothing else could be aged.
+        $queueRegistry = $this->createMock(QueueRegistry::class);
+        $queueRegistry->method('all')->willReturn([
+            'async' => $this->fakeQueueAdapter(ageSeconds: null, messageCount: 7),
+        ]);
+
+        $result = $this->collectWith(
+            connection: $this->connectionReturning($this->createQueryBuilderMock([])),
+            config: [],
+            queueRegistry: $queueRegistry,
+        );
+
+        static::assertSame(SettingsResult::INFO, $result->state);
+        static::assertSame('7 pending', $result->current);
+    }
+
+    public function testFailedNonDoctrineTransportIsExcludedByDefault(): void
+    {
+        $queueRegistry = $this->createMock(QueueRegistry::class);
+        $queueRegistry->method('all')->willReturn([
+            'async_failed' => $this->fakeQueueAdapter(ageSeconds: 2 * 60 * 60),
+        ]);
+
+        $result = $this->collectWith(
+            connection: $this->connectionReturning($this->createQueryBuilderMock([])),
+            config: [],
+            queueRegistry: $queueRegistry,
+        );
+
+        static::assertSame(SettingsResult::INFO, $result->state);
+        static::assertSame('0 mins', $result->current);
+    }
+
+    private function fakeQueueAdapter(?int $ageSeconds, ?int $messageCount = null): \Frosh\Tools\Components\Queue\QueueAdapter
+    {
+        $adapter = $this->createMock(\Frosh\Tools\Components\Queue\QueueAdapter::class);
+        $adapter->method('getOldestMessageAge')->willReturn($ageSeconds);
+        $adapter->method('getMessageCount')->willReturn($messageCount);
+
+        return $adapter;
+    }
+
     /**
      * @param list<array{available_at: string, queue_name: string}> $connectionRows
      * @param array<string, mixed> $config
@@ -242,7 +324,7 @@ class QueueCheckerUnitTest extends TestCase
     /**
      * @param array<string, mixed> $config
      */
-    private function collectWith(Connection $connection, array $config): SettingsResult
+    private function collectWith(Connection $connection, array $config, ?QueueRegistry $queueRegistry = null): SettingsResult
     {
         $configService = $this->createMock(SystemConfigService::class);
         $configService->method('getInt')->willReturnCallback(
@@ -255,8 +337,13 @@ class QueueCheckerUnitTest extends TestCase
             static fn (string $key): mixed => $config[$key] ?? null,
         );
 
+        if ($queueRegistry === null) {
+            $queueRegistry = $this->createMock(QueueRegistry::class);
+            $queueRegistry->method('all')->willReturn([]);
+        }
+
         $collection = new HealthCollection();
-        (new QueueChecker($connection, $configService))->collect($collection);
+        (new QueueChecker($connection, $configService, $queueRegistry))->collect($collection);
 
         foreach ($collection->getElements() as $element) {
             if ($element->id === 'queue') {

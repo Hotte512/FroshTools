@@ -8,6 +8,19 @@
         grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
         gap: 12px;
     }
+
+    &__cached-at {
+        font-size: 11.5px;
+        color: var(--ft-text-muted);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    &__dir-path {
+        color: var(--ft-text-muted);
+        font-size: 11.5px;
+        margin-left: 6px;
+    }
 }
 
 .frosh-stat {

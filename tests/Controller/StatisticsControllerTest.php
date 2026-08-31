@@ -7,6 +7,7 @@ namespace Frosh\Tools\Tests\Controller;
 use Frosh\Tools\Controller\StatisticsController;
 use Frosh\Tools\Tests\IntegrationTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Symfony\Component\HttpFoundation\Request;
 
 #[CoversClass(StatisticsController::class)]
 class StatisticsControllerTest extends IntegrationTestCase
@@ -55,5 +56,32 @@ class StatisticsControllerTest extends IntegrationTestCase
         foreach (['opcache', 'apcu', 'redis', 'fpm'] as $key) {
             static::assertArrayHasKey($key, $data);
         }
+    }
+
+    public function testStorageStatisticsReturnsDirectoriesAndDiskUsage(): void
+    {
+        $response = $this->controller->storageStatistics(new Request());
+
+        static::assertSame(200, $response->getStatusCode());
+
+        $data = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        static::assertIsArray($data);
+        foreach (['directories', 'totalSize', 'disk', 'cachedAt'] as $key) {
+            static::assertArrayHasKey($key, $data);
+        }
+
+        static::assertIsArray($data['directories']);
+        static::assertNotEmpty($data['directories']);
+
+        foreach ($data['directories'] as $directory) {
+            static::assertArrayHasKey('name', $directory);
+            static::assertArrayHasKey('path', $directory);
+            static::assertArrayHasKey('size', $directory);
+        }
+
+        static::assertIsArray($data['disk']);
+        static::assertArrayHasKey('free', $data['disk']);
+        static::assertArrayHasKey('total', $data['disk']);
     }
 }

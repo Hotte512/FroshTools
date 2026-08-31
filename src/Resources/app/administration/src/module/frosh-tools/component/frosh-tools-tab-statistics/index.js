@@ -13,8 +13,10 @@ Component.register('frosh-tools-tab-statistics', {
         return {
             cacheStats: null,
             dbStats: null,
+            storageStats: null,
             isLoadingCache: true,
             isLoadingDb: true,
+            isLoadingStorage: true,
         };
     },
 
@@ -38,7 +40,16 @@ Component.register('frosh-tools-tab-statistics', {
 
     computed: {
         isLoading() {
-            return this.isLoadingCache || this.isLoadingDb;
+            return this.isLoadingCache || this.isLoadingDb || this.isLoadingStorage;
+        },
+
+        diskUsedPercent() {
+            if (!this.storageStats || !this.storageStats.disk || !this.storageStats.disk.total) {
+                return 0;
+            }
+
+            const { free, total } = this.storageStats.disk;
+            return this.clampPercent(((total - free) / total) * 100);
         },
 
         largestTableSize() {
@@ -57,6 +68,7 @@ Component.register('frosh-tools-tab-statistics', {
         loadData() {
             this.loadCacheStats();
             this.loadDbStats();
+            this.loadStorageStats();
         },
 
         async loadCacheStats() {
@@ -87,6 +99,21 @@ Component.register('frosh-tools-tab-statistics', {
                 );
             }
             this.isLoadingDb = false;
+        },
+
+        async loadStorageStats(fresh = false) {
+            this.isLoadingStorage = true;
+            try {
+                this.storageStats =
+                    await this.froshToolsService.getStorageStatistics(fresh);
+            } catch (e) {
+                this.storageStats = null;
+                console.error(
+                    '[frosh-tools] failed to load storage statistics',
+                    e
+                );
+            }
+            this.isLoadingStorage = false;
         },
 
         formatSize(bytes) {

@@ -49,7 +49,7 @@ List cache pools, clear individual pools, compile the theme, and clear PHP OPcac
 
 ### Statistics
 
-OPcache hit rate/memory, cache backend metrics, and database server statistics.
+OPcache hit rate/memory, cache backend metrics, database server statistics, and disk usage per storage directory (media, thumbnails, sitemap, cache, log, private files).
 
 ![Statistics](docs/images/statistics.webp)
 
@@ -100,8 +100,8 @@ Dedicated list/detail UI for Shopware webhooks (including inline search).
 | **System Status** | Health checkers (PHP/FPM, MySQL, queue lag, scheduled tasks, composer audit summary, debug/prod mode, …) and a large set of **performance recommendations** (admin worker, mail-over-queue, increment storage, OPcache flags, ES, product-stream indexing, …). |
 | **Security Center** | Severity overview; Packagist dependency advisories; PHP / MySQL / Symfony / Shopware EOL; environment risks; **core & extension file integrity**; **CycloneDX 1.7 SBOM export**. |
 | **Cache** | Pool listing with clear actions, theme compile, OPcache clear. |
-| **Statistics** | OPcache, cache-adapter, and database metrics for capacity troubleshooting. |
-| **Queue** | Multi-transport support (Doctrine, Redis, AMQP, fallback); browse without consuming (or fetch+requeue); retry failed messages; purge transport; reset queue. |
+| **Statistics** | OPcache, cache-adapter, database, and storage/disk usage metrics for capacity troubleshooting. |
+| **Queue** | Multi-transport support (Doctrine, Redis, AMQP, fallback); browse without consuming (or fetch+requeue); retry failed messages; purge transport; reset queue; health check covers non-Doctrine transports too. |
 | **Scheduled Tasks** | List, run, deactivate; edit interval & next execution; register tasks. |
 | **State Machines** | Diagram viewer for any registered state machine. |
 | **Log Viewer** | Read `var/log/*.log` in the browser. |

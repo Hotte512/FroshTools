@@ -9,6 +9,8 @@ use Doctrine\DBAL\Connection;
 use Frosh\Tools\Components\Health\Checker\CheckerInterface;
 use Frosh\Tools\Components\Health\HealthCollection;
 use Frosh\Tools\Components\Health\SettingsResult;
+use Frosh\Tools\Components\Queue\DoctrineQueueAdapter;
+use Frosh\Tools\Components\Queue\QueueRegistry;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 
 class QueueChecker implements HealthCheckerInterface, CheckerInterface
@@ -22,6 +24,7 @@ class QueueChecker implements HealthCheckerInterface, CheckerInterface
     public function __construct(
         private readonly Connection $connection,
         private readonly SystemConfigService $configService,
+        private readonly QueueRegistry $queueRegistry,
     ) {
     }
 
@@ -33,9 +36,30 @@ class QueueChecker implements HealthCheckerInterface, CheckerInterface
         $graceByQueue = $this->parseGraceMap($this->configService->getString(self::CONFIG_GRACE_TIMES));
 
         $snippet = 'Open Queues';
-        $pendingByQueue = $this->fetchOldestPendingMessagePerQueue($excludeFailed, $queues);
+
+        // Doctrine transports write to messenger_messages, so their pending age is read via
+        // SQL. Other transports (Redis, AMQP, ...) never appear there at all, so without the
+        // registry below a shop running purely on Redis/AMQP would always show "0 mins" no
+        // matter how backed up its queues actually are.
+        $pendingByQueue = [
+            ...$this->fetchOldestPendingMessagePerQueue($excludeFailed, $queues),
+            ...$this->collectNonDoctrineAges($excludeFailed, $queues),
+        ];
 
         if ($pendingByQueue === []) {
+            $fallbackCount = $this->collectNonDoctrineCountOnly($excludeFailed, $queues);
+
+            if ($fallbackCount !== null) {
+                $collection->add(SettingsResult::info(
+                    'queue',
+                    $snippet,
+                    \sprintf('%d pending', $fallbackCount),
+                    'n/a',
+                ));
+
+                return;
+            }
+
             $collection->add(SettingsResult::info(
                 'queue',
                 $snippet,
@@ -62,7 +86,7 @@ class QueueChecker implements HealthCheckerInterface, CheckerInterface
     /**
      * @param list<string> $queues
      *
-     * @return list<array{available_at: string, queue_name: string}>
+     * @return list<array{queue_name: string, ageMinutes: int}>
      */
     private function fetchOldestPendingMessagePerQueue(bool $excludeFailed, array $queues): array
     {
@@ -91,13 +115,117 @@ class QueueChecker implements HealthCheckerInterface, CheckerInterface
         /** @var list<array{available_at: string, queue_name: string}> $rows */
         $rows = $query->fetchAllAssociative();
 
-        return $rows;
+        return \array_map(
+            static fn (array $row): array => [
+                'queue_name' => (string) $row['queue_name'],
+                'ageMinutes' => self::ageInMinutesFromTimestamp((string) $row['available_at']),
+            ],
+            $rows,
+        );
+    }
+
+    /**
+     * Redis (and any other transport that can report the age of its oldest waiting message
+     * via the queue registry) gets folded into the same worst-queue comparison as Doctrine,
+     * so a backed-up Redis queue is graded with the exact same grace-time rules.
+     *
+     * @param list<string> $queues
+     *
+     * @return list<array{queue_name: string, ageMinutes: int}>
+     */
+    private function collectNonDoctrineAges(bool $excludeFailed, array $queues): array
+    {
+        $result = [];
+
+        foreach ($this->safeTransportAdapters() as $name => $adapter) {
+            if ($adapter instanceof DoctrineQueueAdapter) {
+                // Already covered by fetchOldestPendingMessagePerQueue().
+                continue;
+            }
+
+            if (!$this->isQueueMonitored($name, $excludeFailed, $queues)) {
+                continue;
+            }
+
+            $ageSeconds = $adapter->getOldestMessageAge();
+            if ($ageSeconds === null) {
+                continue;
+            }
+
+            $result[] = [
+                'queue_name' => $name,
+                'ageMinutes' => (int) \floor($ageSeconds / 60),
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Last resort for transports that can only report a message count (e.g. AMQP), used
+     * only when nothing could be aged at all — otherwise those counts would silently vanish.
+     *
+     * @param list<string> $queues
+     */
+    private function collectNonDoctrineCountOnly(bool $excludeFailed, array $queues): ?int
+    {
+        $total = 0;
+        $found = false;
+
+        foreach ($this->safeTransportAdapters() as $name => $adapter) {
+            if ($adapter instanceof DoctrineQueueAdapter) {
+                continue;
+            }
+
+            if (!$this->isQueueMonitored($name, $excludeFailed, $queues)) {
+                continue;
+            }
+
+            $count = $adapter->getMessageCount();
+            if ($count === null) {
+                continue;
+            }
+
+            $found = true;
+            $total += $count;
+        }
+
+        return $found ? $total : null;
+    }
+
+    /**
+     * @param list<string> $queues
+     */
+    private function isQueueMonitored(string $name, bool $excludeFailed, array $queues): bool
+    {
+        if ($excludeFailed && \str_contains($name, 'failed')) {
+            return false;
+        }
+
+        return $queues === [] || \in_array($name, $queues, true);
+    }
+
+    /**
+     * The registry resolves every configured transport eagerly, which can throw if a
+     * backend (Redis, RabbitMQ, ...) is unreachable. A health-check widget must never take
+     * the whole /health/status response down with it, so a failure here degrades to "no
+     * non-Doctrine transports found" instead of propagating.
+     *
+     * @return array<string, \Frosh\Tools\Components\Queue\QueueAdapter>
+     */
+    private function safeTransportAdapters(): array
+    {
+        try {
+            return $this->queueRegistry->all();
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     /**
      * Prefer any overdue queue (highest minutes-over-grace); otherwise the oldest pending age.
      *
-     * @param list<array{available_at: string, queue_name: string}> $pendingByQueue
+     * @param list<array{queue_name: string, ageMinutes: int}> $pendingByQueue
      * @param array<string, int> $graceByQueue
      *
      * @return array{queueName: string, ageMinutes: int, grace: int, overdue: bool}
@@ -107,9 +235,9 @@ class QueueChecker implements HealthCheckerInterface, CheckerInterface
         $worst = null;
 
         foreach ($pendingByQueue as $row) {
-            $queueName = (string) $row['queue_name'];
+            $queueName = $row['queue_name'];
             $grace = $graceByQueue[$queueName] ?? $defaultGrace;
-            $ageMinutes = $this->ageInMinutes((string) $row['available_at']);
+            $ageMinutes = $row['ageMinutes'];
             $overdue = $ageMinutes > $grace;
             $overBy = $overdue ? $ageMinutes - $grace : 0;
 
@@ -158,7 +286,7 @@ class QueueChecker implements HealthCheckerInterface, CheckerInterface
         ];
     }
 
-    private function ageInMinutes(string $availableAt): int
+    private static function ageInMinutesFromTimestamp(string $availableAt): int
     {
         $available = new \DateTimeImmutable($availableAt, new \DateTimeZone('UTC'));
         $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));

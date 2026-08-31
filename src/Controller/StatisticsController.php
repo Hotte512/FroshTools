@@ -7,8 +7,10 @@ namespace Frosh\Tools\Controller;
 use Frosh\Tools\Acl\FroshToolsPrivileges;
 use Frosh\Tools\Components\CacheStatisticsService;
 use Frosh\Tools\Components\DatabaseStatisticsService;
+use Frosh\Tools\Components\StorageStatisticsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route(path: '/api/_action/frosh-tools/statistics', defaults: ['_routeScope' => ['api'], '_acl' => [FroshToolsPrivileges::READ]])]
@@ -17,6 +19,7 @@ class StatisticsController extends AbstractController
     public function __construct(
         private readonly CacheStatisticsService $cacheStatisticsService,
         private readonly DatabaseStatisticsService $databaseStatisticsService,
+        private readonly StorageStatisticsService $storageStatisticsService,
     ) {
     }
 
@@ -39,5 +42,13 @@ class StatisticsController extends AbstractController
             'tables' => $this->databaseStatisticsService->getTableStatistics(),
             'globalStatus' => $this->databaseStatisticsService->getGlobalStatus(),
         ]);
+    }
+
+    #[Route(path: '/storage', name: 'api.frosh.tools.statistics.storage', methods: ['GET'])]
+    public function storageStatistics(Request $request): JsonResponse
+    {
+        return new JsonResponse(
+            $this->storageStatisticsService->getStorageStatistics($request->query->getBoolean('refresh')),
+        );
     }
 }

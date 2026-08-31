@@ -325,7 +325,16 @@
                 "rows": "Zeilen",
                 "dataSize": "Datengröße",
                 "indexSize": "Indexgröße",
-                "totalSize": "Gesamtgröße"
+                "totalSize": "Gesamtgröße",
+                "storage": "Speicherplatz",
+                "diskUsed": "Festplatte belegt",
+                "diskFree": "Frei",
+                "diskTotal": "Gesamt",
+                "directoriesTotal": "Verzeichnisse gesamt",
+                "cachedAt": "Stand",
+                "directory": "Verzeichnis",
+                "size": "Größe",
+                "unknown": "Unbekannt"
             },
             "fastly": {
                 "title": "Fastly",

@@ -13,6 +13,7 @@ import {
     Download,
     ExternalLink,
     FileText,
+    HardDrive,
     Info,
     LineChart,
     MoreHorizontal,
@@ -53,6 +54,7 @@ const ICONS = {
     flow: Workflow,
     chart: LineChart,
     close: X,
+    storage: HardDrive,
 };
 
 const { Component } = Shopware;

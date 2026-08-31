@@ -634,11 +634,101 @@
             </table>
         </div>
     </ft-panel>
+    <!-- Storage -->
+    <ft-panel v-if="storageStats">
+        <template #title>
+            <ft-icon name="storage"/>
+            <span>{{ $t('frosh-tools.tabs.statistics.storage') }}</span>
+        </template>
+        <template #actions>
+            <span
+                v-if="storageStats.cachedAt"
+                class="frosh-tab-statistics__cached-at"
+            >
+                {{ $t('frosh-tools.tabs.statistics.cachedAt') }}: {{ formatDateTime(storageStats.cachedAt) }}
+            </span>
+            <ft-refresh-button
+                :loading="isLoadingStorage"
+                @click="loadStorageStats(true)"
+            />
+        </template>
+        <div class="frosh-tab-statistics__metrics">
+            <div class="frosh-stat frosh-stat--feature">
+                <div class="frosh-stat__label">
+                    {{ $t('frosh-tools.tabs.statistics.diskUsed') }}
+                </div>
+                <div
+                    :class="['frosh-stat__value', 'frosh-stat__value--' + fillVariant(diskUsedPercent)]"
+                >
+                    {{ formatPercent(diskUsedPercent) }}
+                </div>
+                <div class="frosh-meter">
+                    <div
+                        :class="['frosh-meter__fill', 'frosh-meter__fill--' + fillVariant(diskUsedPercent)]"
+                        :style="{ width: diskUsedPercent + '%' }"
+                    ></div>
+                </div>
+            </div>
+            <div class="frosh-stat">
+                <div class="frosh-stat__label">
+                    {{ $t('frosh-tools.tabs.statistics.diskFree') }}
+                </div>
+                <div class="frosh-stat__value">
+                    {{ formatSize(storageStats.disk.free) }}
+                </div>
+            </div>
+            <div class="frosh-stat">
+                <div class="frosh-stat__label">
+                    {{ $t('frosh-tools.tabs.statistics.diskTotal') }}
+                </div>
+                <div class="frosh-stat__value">
+                    {{ formatSize(storageStats.disk.total) }}
+                </div>
+            </div>
+            <div class="frosh-stat">
+                <div class="frosh-stat__label">
+                    {{ $t('frosh-tools.tabs.statistics.directoriesTotal') }}
+                </div>
+                <div class="frosh-stat__value">
+                    {{ formatSize(storageStats.totalSize) }}
+                </div>
+            </div>
+        </div>
+        <div class="ft-table-wrap">
+            <table class="ft-table">
+                <thead>
+                    <tr>
+                        <th>{{ $t('frosh-tools.tabs.statistics.directory') }}</th>
+                        <th class="ft-table__num">{{ $t('frosh-tools.tabs.statistics.size') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="directory in storageStats.directories"
+                        :key="directory.path"
+                    >
+                        <td>
+                            {{ directory.name }}
+                            <span class="ft-mono frosh-tab-statistics__dir-path">({{ directory.path }})</span>
+                        </td>
+                        <td class="ft-table__num">
+                            <template v-if="directory.size < 0">
+                                {{ $t('frosh-tools.tabs.statistics.unknown') }}
+                            </template>
+                            <template v-else>
+                                {{ formatSize(directory.size) }}
+                            </template>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </ft-panel>
     <ft-empty
-        v-if="isLoading && !cacheStats && !dbStats"
+        v-if="isLoading && !cacheStats && !dbStats && !storageStats"
         loading
     />
-    <ft-panel v-else-if="!isLoading && !cacheStats && !dbStats">
+    <ft-panel v-else-if="!isLoading && !cacheStats && !dbStats && !storageStats">
         <ft-hero-state
             variant="danger"
             icon="alert"
